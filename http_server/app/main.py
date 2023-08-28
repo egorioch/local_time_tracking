@@ -1,8 +1,10 @@
+import json
 from typing import Sequence
 
 import uvicorn
 import logging
 
+import pandas as pd
 from fastapi import FastAPI, Depends
 from http_server.app import config_loader as config_loader
 from database.app.db import DB
@@ -27,7 +29,7 @@ async def get_all_time(session: AsyncSession = Depends(db_instance.get_async_ses
     """ Инжектируем сессию с помощью Depends(для каждого маршрута - новая сессия)
         и возвращаем данные на эндпоинт
 
-        @:return json_array
+        :return json_array
     """
 
     time_tracking = await db_instance.get_async_time_tracking(session)
@@ -50,6 +52,28 @@ async def get_all_employees(session: AsyncSession = Depends(db_instance.get_asyn
         role=emp.role,
         img_path=emp.img_path
     ) for emp in employees]
+
+
+@app.get("/time_tracking_by_employee", response_model=dict[int, list[TimeTrackingBase]])
+async def get_time_trackings_by_employee(session: AsyncSession = Depends(db_instance.get_async_session)):
+    ordered_time_tracking = await db_instance.get_async_time_tracking_by_employee(session)
+
+    time_trackings_by_employee = {}
+
+    for time_tracking in ordered_time_tracking:
+        employee = time_tracking.employee
+        if employee not in time_trackings_by_employee:
+            time_trackings_by_employee[employee] = []
+        time_trackings_by_employee[employee].append(time_tracking)
+
+    # Преобразование словаря в JSON
+    result_json = json.dumps(
+        {str(employee): [tt for tt in time_trackings] for employee, time_trackings in
+         time_trackings_by_employee.items()},
+        default=str
+    )
+
+    return result_json
 
 
 if __name__ == "__main__":
