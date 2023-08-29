@@ -54,9 +54,13 @@ class DB(metaclass=MetaSingleton):
 
     # сервисная функция для получения массив time_tracking, сортированный по empolyee_id
     async def get_async_time_tracking_by_employee(self, session: AsyncSession) -> Sequence[TimeTracking]:
-        stmt = select(TimeTracking).order_by(TimeTracking.employee_id)
-        result = await session.execute(stmt)
-        return result.scalars().all()
+        # stmt = select(TimeTracking).order_by(TimeTracking.employee_id)
+        result = await session.execute(select(TimeTracking).order_by(TimeTracking.employee_id))
+        time_trackings = result.scalars().all()
+        for time_track in time_trackings:
+            time_track.employee = await session.get(Employee, time_track.employee_id)
+
+        return time_trackings
 
 
 async def async_main():

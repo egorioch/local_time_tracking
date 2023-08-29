@@ -54,7 +54,7 @@ async def get_all_employees(session: AsyncSession = Depends(db_instance.get_asyn
     ) for emp in employees]
 
 
-@app.get("/time_tracking_by_employee", response_model=dict[int, list[TimeTrackingBase]])
+@app.get("/time_tracking_by_employee")
 async def get_time_trackings_by_employee(session: AsyncSession = Depends(db_instance.get_async_session)):
     ordered_time_tracking = await db_instance.get_async_time_tracking_by_employee(session)
 
@@ -63,17 +63,10 @@ async def get_time_trackings_by_employee(session: AsyncSession = Depends(db_inst
     for time_tracking in ordered_time_tracking:
         employee = time_tracking.employee
         if employee not in time_trackings_by_employee:
-            time_trackings_by_employee[employee] = []
-        time_trackings_by_employee[employee].append(time_tracking)
+            time_trackings_by_employee[employee.id] = []
+        time_trackings_by_employee[employee.id].append(time_tracking)
 
-    # Преобразование словаря в JSON
-    result_json = json.dumps(
-        {str(employee): [tt for tt in time_trackings] for employee, time_trackings in
-         time_trackings_by_employee.items()},
-        default=str
-    )
-
-    return result_json
+    return time_trackings_by_employee
 
 
 if __name__ == "__main__":
