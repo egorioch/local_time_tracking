@@ -15,14 +15,26 @@
       <bar-chart :chartData="chartDataComputed" :chartOptions="options" />
     </div>
 
-    <div class="pagination-layer">
+    <!-- <div class="pagination-layer">
       <div class="buttons">
         <button class="back-button" v-if="hasPreviosPage" @click="decrementPage()">Назад</button>
         <div class="current-page-value">{{ currentPage }}</div>
         <button class="forward-button" v-if="hasNextPage" @click="incrementPage()">Вперёд</button>
       </div>
-    </div>
+    </div> -->
+
+    <pagination-component
+      :totalPages="10"
+      :perPage="10"
+      :currentPage="currentPage"
+      @pagechanged="onPageChange"
+      class="pagination"
+    />
   </div>
+
+  
+
+  
 
 </template>
 
@@ -30,12 +42,7 @@
 import BarChart from '@/components/BarChart.vue';
 import PaginationComponent from '@/components/PaginationComponent.vue';
 
-import {getAllTimeTrackingByEmployees} from "@/scripts/server"
-
-
-import {
-  getDataFromServer
-} from '@/scripts/active_timedata_from server'
+import { getAllTimeTrackingByEmployees } from "@/scripts/server"
 
 export default {
   components: {
@@ -44,14 +51,12 @@ export default {
   },
 
   async created() {
-    this.timeTracking = await getAllTimeTrackingByEmployees();
+    const unsortedArray = await getAllTimeTrackingByEmployees();
+    this.timeTracking = this.timeTrackingSortedByData(unsortedArray)
   },
   data() {
     return {
       findDateText: '',
-      allData: getDataFromServer(),
-      employeesIdArray: [],
-      employeesSurnames: [],
       timeTracking: [],
 
       startPage: 0,
@@ -59,10 +64,6 @@ export default {
       currentPage: 1,
       hasNextPage: true,
       pagindatedValue: 6,
-
-      chartData: {},
-      // labels: [],
-      datasets: [],
 
       options: {
         responsive: true,
@@ -110,6 +111,25 @@ export default {
       this.employeesSurnames = [];
       this.currentPage = this.currentPage + 1;
     },
+    timeTrackingSortedByData(unsortedArray) {
+      unsortedArray.sort(function (a, b) {
+          let first = new Date(a.date);
+          let second = new Date(b.date);
+          if (first == second) {
+            return 0;
+          }
+          return first > second ? 1 : -1;
+        })
+
+      console.log("unsorted: " + JSON.stringify(unsortedArray))
+      return unsortedArray
+    },
+
+    // при клике на дочернем компоненте pagination-component
+    onPageChange(page) {
+      console.log(page)
+      this.currentPage = page;
+    }
   },
 
   computed: {
@@ -136,8 +156,6 @@ export default {
     },
 
     labels() {
-      // this.matchSurnameToEmployeeId();
-      // console.log('timeTracking: ' + this.timeTracking)
       const employeesSurnames = [];
 
       for (let i = 0; i < this.timeTracking.length; i++) {
@@ -165,7 +183,9 @@ export default {
       chartData.labels = this.labels;
 
       return chartData;
-    }
+    },
+
+
   },
 
 
@@ -196,7 +216,7 @@ $font: 'Open Sans', sans-serif;
   justify-content: center;
   overflow: auto;
   font-family: $font;
-  margin: 30px
+  margin-top: 50px
 }
 
 .data-find-button {
@@ -236,16 +256,9 @@ $font: 'Open Sans', sans-serif;
   font-size: 18px;
 }
 
-.choose-histogram-layer {
-  margin-top: 10px;
+.pagination {
   display: flex;
+  justify-content: center;
   align-items: center;
-  align-content: center;
-}
-
-.grid-container {
-  display: grid;
-  grid-template-columns: auto auto auto;
-  padding: 10px;
 }
 </style>

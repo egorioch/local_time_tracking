@@ -1,68 +1,138 @@
 <template>
-  <div v-for="element in paginatedArray">
-    {{element}}
-  </div>
-  <div class="pagination-layer">
-    <div class="buttons">
-      <button class="back-button" v-if="currentPage > 0" @click="backButton()">Назад</button>
-      <div class="current-page-value">{{ currentPage }}</div>
-      <button class="forward-button" @click="forwardButton()">Вперёд</button>
-    </div>
-  </div>
+  <ul class="pagination">
+    <li class="pagination-item">
+      <button type="button" @click="onClickFirstPage" :disabled="isInFirstPage">
+        First
+      </button>
+    </li>
+
+    <li class="pagination-item">
+      <button type="button" @click="onClickPreviousPage" :disabled="isInFirstPage">
+        Previous
+      </button>
+    </li>
+
+    <!-- Visible Buttons Start -->
+
+    <li class="pagination-item" v-for="page in pages" :key="page.name">
+      <button type="button" @click="onClickPage(page.name)" :disabled="page.isDisabled">
+        {{ page.name }}
+      </button>
+    </li>
+
+    <!-- Visible Buttons End -->
+
+    <li class="pagination-item">
+      <button type="button" @click="onClickNextPage" :disabled="isInLastPage">
+        Next
+      </button>
+    </li>
+
+    <li class="pagination-item">
+      <button type="button" @click="onClickLastPage" :disabled="isInLastPage">
+        Last
+      </button>
+    </li>
+  </ul>
 </template>
 
 <script>
 export default {
   props: {
-    rawArray: Array,
-    paginatedValue: {
+    maxVisibleButtons: {
       type: Number,
-      default: 6
-    }
-  },
-  data() {
-    return {
-      start: 0,
-      end: 0,
-      currentPage: 0,
-      paginatedArray: []
-    }
+      required: false,
+      default: 3
+    },
+    totalPages: {
+      type: Number,
+      required: true
+    },
+    perPage: {
+      type: Number,
+      required: true
+    },
+    currentPage: {
+      type: Number,
+      required: true
+    },
+
   },
   computed: {
+    startPage() {
+      // When on the first page
+      if (this.currentPage === 1) {
+        return 1;
+      }
 
+      // When on the last page
+      if (this.currentPage === this.totalPages) {
+        return this.totalPages - this.maxVisibleButtons;
+      }
+
+      // When inbetween
+      return this.currentPage - 1;
+    },
+    pages() {
+      const range = [];
+
+      for (
+        let i = this.startPage;
+        i <= Math.min(this.startPage + this.maxVisibleButtons - 1, this.totalPages);
+        i++
+      ) {
+        range.push({
+          name: i,
+          isDisabled: i === this.currentPage
+        });
+      }
+
+      return range;
+    },
+
+    isInFirstPage() {
+      return this.currentPage === 1;
+    },
+
+    isInLastPage() {
+      return this.currentPage === this.totalPages;
+    },
   },
   methods: {
-    backButton() {
-      this.currentPage--;
+    onClickFirstPage() {
+      this.$emit('pagechanged', 1);
     },
-    forwardButton() {
-      this.currentPage++;
-    }
-  },
-  watch: {
-    currentPage() {
-      this.currentPage > 0 ? this.start = this.currentPage * this.paginatedValue : this.start = 0;
-      this.currentPage * 6 > this.paginatedValue ? this.end = this.rawArray.length : this.start = 0;
-
-      console.log("this.rawArray: " + this.rawArray)
-      this.paginatedArray = this.rawArray.slice(this.start, this.end);
+    onClickPreviousPage() {
+      this.$emit('pagechanged', this.currentPage - 1);
+    },
+    onClickPage(page) {
+      this.$emit('pagechanged', page);
+    },
+    onClickNextPage() {
+      this.$emit('pagechanged', this.currentPage + 1);
+    },
+    onClickLastPage() {
+      this.$emit('pagechanged', this.totalPages);
+    },
+    isPageActive(page) {
+      return this.currentPage === page;
     }
   }
-  
-
-}
+};
 </script>
 
-<style lang="scss" scoped>
-$font: 'Open Sans', sans-serif;
 
-.buttons {
-  display: flex;
-  align-items: flex-end;
-  align-content: flex-end;
-  margin: 2px;
-  padding: auto;
+<style scoped>
+.pagination {
+  list-style-type: none;
 }
 
+.pagination-item {
+  display: inline-block;
+}
 
+.active {
+  background-color: #4AAE9B;
+  color: #ffffff;
+}
 </style>

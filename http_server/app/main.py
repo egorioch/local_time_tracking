@@ -66,15 +66,6 @@ async def get_all_employees(session: AsyncSession = Depends(db_instance.get_asyn
 @app.get("/time_tracking_by_employee")
 async def get_time_trackings_by_employee(session: AsyncSession = Depends(db_instance.get_async_session)):
     ordered_time_tracking = await db_instance.get_async_time_tracking_by_employee(session)
-
-    # time_trackings_by_employee = {}
-    #
-    # for time_tracking in ordered_time_tracking:
-    #     employee = time_tracking.employee
-    #     if employee not in time_trackings_by_employee:
-    #         time_trackings_by_employee[employee.id] = []
-    #     time_trackings_by_employee[employee.id].append(time_tracking)
-
     return ordered_time_tracking
 
 
