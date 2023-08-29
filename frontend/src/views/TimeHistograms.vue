@@ -9,7 +9,7 @@
     <div class="data-input-layer">
       <label class="label-input-field" for="input-field">Дата: </label>
       <input class="input-field" v-model="findDateText" name="input-field" placeholder="2023-05-14" />
-      <button class="data-find-button" @click="findData()">Найти</button>
+      <button class="data-find-button">Найти</button>
     </div>
     <div class="canvas-chart-class">
       <bar-chart :chartData="chartDataComputed" :chartOptions="options" />
@@ -24,19 +24,16 @@
     </div>
   </div>
 
-
-  <div>
-    <!-- startIndex: {{ startIndex }}, endIndex: {{ endIndex }} -->
-  </div>
 </template>
 
 <script>
 import BarChart from '@/components/BarChart.vue';
 import PaginationComponent from '@/components/PaginationComponent.vue';
-import { getAllEmployeesInfo } from "@/scripts/employees_info";
+
+import {getAllTimeTrackingByEmployees} from "@/scripts/server"
+
 
 import {
-  getTotalTimeArrayFromJson,
   getDataFromServer
 } from '@/scripts/active_timedata_from server'
 
@@ -45,30 +42,17 @@ export default {
     BarChart,
     PaginationComponent
   },
-  
-  props: {
-    
-  },
 
-  created() {
-    this.chartData.datasets = [{
-      label: 'Рабочее время',
-      data: getTotalTimeArrayFromJson(),
-      backgroundColor: "rgba(71, 183,132,.5)",
-      borderColor: "#47b784",
-      borderWidth: 3
-    }]
-    this.chartData.labels = this.labels;
-
-    this.getEmployeesIdArrayFromJson();
+  async created() {
+    this.timeTracking = await getAllTimeTrackingByEmployees();
   },
   data() {
     return {
       findDateText: '',
       allData: getDataFromServer(),
       employeesIdArray: [],
-      rawEmployeeData: getAllEmployeesInfo(),
       employeesSurnames: [],
+      timeTracking: [],
 
       startPage: 0,
       endPage: 0,
@@ -118,43 +102,6 @@ export default {
 
   },
   methods: {
-    findData() {
-      let dataDateAccordingWithTime = [];
-      let dataEmployeeIdAccordingWithTime = [];
-      this.allData.forEach(element => {
-
-        let findDateText = this.findDateText.substring(0, 10);
-        let dateText = element.date.substring(0, 10);
-
-        if (dateText === findDateText) {
-          dataDateAccordingWithTime.push(element.total_time);
-          dataEmployeeIdAccordingWithTime.push(element.employee_id)
-        }
-      })
-
-      this.chartData.datasets.data = dataDateAccordingWithTime;
-      console.log("this.chartData.datasets.data: " + this.chartData.datasets.data);
-      this.chartData.labels = dataEmployeeIdAccordingWithTime;
-
-      // this.renderChart(this.chartData, this.options)
-    },
-
-    getEmployeesIdArrayFromJson() {
-      this.allData.forEach((element) => {
-        this.employeesIdArray.push(element.employee_id);
-      });
-
-      console.log("EMPLOYEEidArray: " + this.employeesIdArray)
-    },
-
-    matchSurnameToEmployeeId() {
-      this.employeesIdArray.forEach((element) => {
-        this.employeesSurnames.push(this.rawEmployeeData[element].full_name)
-      })
-
-      console.log("массив имен: " + this.employeesSurnames);
-    },
-
     decrementPage() {
       this.employeesSurnames = [];
       this.currentPage = this.currentPage - 1;
@@ -162,8 +109,7 @@ export default {
     incrementPage() {
       this.employeesSurnames = [];
       this.currentPage = this.currentPage + 1;
-    }
-
+    },
   },
 
   computed: {
@@ -173,7 +119,7 @@ export default {
 
     endIndex() {
       const indexCurrentPage = this.currentPage * this.pagindatedValue;
-      const arrayLength = this.employeesIdArray.length;
+      const arrayLength = this.timeTracking.length;
 
       return this.hasNextPage ? indexCurrentPage : arrayLength;
     },
@@ -184,22 +130,34 @@ export default {
 
     hasNextPage() {
       const indexCurrentPage = this.currentPage * this.pagindatedValue;
-      const arrayLength = this.employeesIdArray.length;
+      const arrayLength = this.timeTracking.length;
 
       return indexCurrentPage < arrayLength;
     },
 
     labels() {
-      this.matchSurnameToEmployeeId();
-      return this.employeesSurnames.slice(this.startIndex, this.endIndex);
+      // this.matchSurnameToEmployeeId();
+      // console.log('timeTracking: ' + this.timeTracking)
+      const employeesSurnames = [];
+
+      for (let i = 0; i < this.timeTracking.length; i++) {
+        console.log(this.timeTracking[i])
+        employeesSurnames.push(this.timeTracking[i].employee.full_name)
+      }
+      return employeesSurnames.slice(this.startIndex, this.endIndex);
     },
 
     chartDataComputed() {
       const chartData = {};
 
+      const totalTime = [];
+      for (let i = 0; i < this.timeTracking.length; i++) {
+        totalTime.push(this.timeTracking[i].total_time)
+      }
+
       chartData.datasets = [{
         label: 'Рабочее время',
-        data: getTotalTimeArrayFromJson().slice(this.startIndex, this.endIndex),
+        data: totalTime.slice(this.startIndex, this.endIndex),
         backgroundColor: "rgba(71, 183,132,.5)",
         borderColor: "#47b784",
         borderWidth: 3

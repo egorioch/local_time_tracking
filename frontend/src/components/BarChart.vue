@@ -20,7 +20,6 @@ export default {
       type: Object,
       default: null
     }
-
   }
 }
 </script>

@@ -6,6 +6,7 @@ import logging
 
 import pandas as pd
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from http_server.app import config_loader as config_loader
 from database.app.db import DB
 from sqlalchemy import select
@@ -15,6 +16,14 @@ from http_server.app.models import TimeTrackingBase, EmployeeBase
 config = config_loader.Config()
 app = FastAPI()
 db_instance = DB()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 logging.basicConfig(
     level=logging.getLevelName(config.get(config_loader.LOGGING_LEVEL)),
@@ -58,15 +67,15 @@ async def get_all_employees(session: AsyncSession = Depends(db_instance.get_asyn
 async def get_time_trackings_by_employee(session: AsyncSession = Depends(db_instance.get_async_session)):
     ordered_time_tracking = await db_instance.get_async_time_tracking_by_employee(session)
 
-    time_trackings_by_employee = {}
+    # time_trackings_by_employee = {}
+    #
+    # for time_tracking in ordered_time_tracking:
+    #     employee = time_tracking.employee
+    #     if employee not in time_trackings_by_employee:
+    #         time_trackings_by_employee[employee.id] = []
+    #     time_trackings_by_employee[employee.id].append(time_tracking)
 
-    for time_tracking in ordered_time_tracking:
-        employee = time_tracking.employee
-        if employee not in time_trackings_by_employee:
-            time_trackings_by_employee[employee.id] = []
-        time_trackings_by_employee[employee.id].append(time_tracking)
-
-    return time_trackings_by_employee
+    return ordered_time_tracking
 
 
 if __name__ == "__main__":
