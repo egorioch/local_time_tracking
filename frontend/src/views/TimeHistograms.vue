@@ -23,19 +23,9 @@
       </div>
     </div> -->
 
-    <pagination-component
-      :totalPages="10"
-      :perPage="10"
-      :currentPage="currentPage"
-      @pagechanged="onPageChange"
-      class="pagination"
-    />
+    <pagination-component :totalPages="countTotalPages" :perPage="1" :currentPage="currentPage"
+      @pagechanged="onPageChange" class="pagination" />
   </div>
-
-  
-
-  
-
 </template>
 
 <script>
@@ -63,7 +53,7 @@ export default {
       endPage: 0,
       currentPage: 1,
       hasNextPage: true,
-      pagindatedValue: 6,
+      paginatedValue: 6,
 
       options: {
         responsive: true,
@@ -86,7 +76,7 @@ export default {
           y: {
             type: 'time', // Установка типа временной шкалы
             time: {
-              parser: 'HH', // Формат времени
+              parser: 'HH:mm', // Формат времени
               unit: 'hour', // Единица измерения времени (например, 'hour', 'minute')
               displayFormats: {
                 hour: 'HH', // Формат отображения времени
@@ -113,15 +103,14 @@ export default {
     },
     timeTrackingSortedByData(unsortedArray) {
       unsortedArray.sort(function (a, b) {
-          let first = new Date(a.date);
-          let second = new Date(b.date);
-          if (first == second) {
-            return 0;
-          }
-          return first > second ? 1 : -1;
-        })
+        let first = new Date(a.date);
+        let second = new Date(b.date);
+        if (first == second) {
+          return 0;
+        }
+        return first > second ? 1 : -1;
+      })
 
-      console.log("unsorted: " + JSON.stringify(unsortedArray))
       return unsortedArray
     },
 
@@ -134,32 +123,21 @@ export default {
 
   computed: {
     startIndex() {
-      return (this.currentPage - 1) * this.pagindatedValue
+      return (this.currentPage - 1) * this.paginatedValue
     },
 
     endIndex() {
-      const indexCurrentPage = this.currentPage * this.pagindatedValue;
+      const indexCurrentPage = this.currentPage * this.paginatedValue;
       const arrayLength = this.timeTracking.length;
 
       return this.hasNextPage ? indexCurrentPage : arrayLength;
     },
 
-    hasPreviosPage() {
-      return this.currentPage > 1;
-    },
-
-    hasNextPage() {
-      const indexCurrentPage = this.currentPage * this.pagindatedValue;
-      const arrayLength = this.timeTracking.length;
-
-      return indexCurrentPage < arrayLength;
-    },
 
     labels() {
       const employeesSurnames = [];
 
       for (let i = 0; i < this.timeTracking.length; i++) {
-        console.log(this.timeTracking[i])
         employeesSurnames.push(this.timeTracking[i].employee.full_name)
       }
       return employeesSurnames.slice(this.startIndex, this.endIndex);
@@ -185,6 +163,17 @@ export default {
       return chartData;
     },
 
+    countTotalPages() {
+      let pages = this.timeTracking.length / this.paginatedValue;
+      console.log("countedPages(int): " + pages)
+      if (this.timeTracking.length - pages * this.paginatedValue > 0) {
+        pages = pages + 1;
+        console.log("remain is: " + this.timeTracking.length - pages)
+      }
+
+      console.log("countedPages: " + pages)
+      return pages;
+    }
 
   },
 

@@ -65,9 +65,9 @@ export default {
         return 1;
       }
 
-      // When on the last page
+      // Когда находимся на последней странице, это возвращаемое значение будет первой доступной для перехода страницей
       if (this.currentPage === this.totalPages) {
-        return this.totalPages - this.maxVisibleButtons;
+        return this.totalPages - Math.min(this.maxVisibleButtons, this.totalPages) + 1;
       }
 
       // When inbetween
@@ -87,6 +87,7 @@ export default {
         });
       }
 
+      console.log("pages: " + JSON.stringify(range))
       return range;
     },
 
