@@ -87,7 +87,6 @@ export default {
         });
       }
 
-      console.log("pages: " + JSON.stringify(range))
       return range;
     },
 

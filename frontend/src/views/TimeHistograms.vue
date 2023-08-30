@@ -6,22 +6,11 @@
 
 <template>
   <div class="common-histogram-layer">
-    <div class="data-input-layer">
-      <label class="label-input-field" for="input-field">Дата: </label>
-      <input class="input-field" v-model="findDateText" name="input-field" placeholder="2023-05-14" />
-      <button class="data-find-button">Найти</button>
-    </div>
+    <data-window-component :date="dateArray" @choosedvaluedate="choosedValueDate"/>
+
     <div class="canvas-chart-class">
       <bar-chart :chartData="chartDataComputed" :chartOptions="options" />
     </div>
-
-    <!-- <div class="pagination-layer">
-      <div class="buttons">
-        <button class="back-button" v-if="hasPreviosPage" @click="decrementPage()">Назад</button>
-        <div class="current-page-value">{{ currentPage }}</div>
-        <button class="forward-button" v-if="hasNextPage" @click="incrementPage()">Вперёд</button>
-      </div>
-    </div> -->
 
     <pagination-component :totalPages="countTotalPages" :perPage="1" :currentPage="currentPage"
       @pagechanged="onPageChange" class="pagination" />
@@ -31,29 +20,34 @@
 <script>
 import BarChart from '@/components/BarChart.vue';
 import PaginationComponent from '@/components/PaginationComponent.vue';
+import DataWindowComponent from '@/components/DataWindowComponent.vue';
 
 import { getAllTimeTrackingByEmployees } from "@/scripts/server"
 
 export default {
   components: {
     BarChart,
-    PaginationComponent
-  },
+    PaginationComponent,
+    DataWindowComponent
+},
 
   async created() {
     const unsortedArray = await getAllTimeTrackingByEmployees();
-    this.timeTracking = this.timeTrackingSortedByData(unsortedArray)
+    this.timeTracking = this.timeTrackingSortedByData(unsortedArray);
+    this.primaryTimeTrackingArray = this.timeTracking;
   },
   data() {
     return {
       findDateText: '',
       timeTracking: [],
+      primaryTimeTrackingArray: [],
 
       startPage: 0,
       endPage: 0,
       currentPage: 1,
       hasNextPage: true,
       paginatedValue: 6,
+      choosedDate: '',
 
       options: {
         responsive: true,
@@ -62,9 +56,7 @@ export default {
           tooltip: {
             callbacks: {
               label: function (context) {
-                // console.log(context)
                 const dataset = context.dataset;
-                // console.log(dataset.data[context.dataIndex]);
                 let currentIndexTime = dataset.data[context.dataIndex];
 
                 return currentIndexTime;
@@ -88,9 +80,7 @@ export default {
           }
         }
       },
-
     }
-
   },
   methods: {
     decrementPage() {
@@ -116,9 +106,25 @@ export default {
 
     // при клике на дочернем компоненте pagination-component
     onPageChange(page) {
-      console.log(page)
       this.currentPage = page;
-    }
+    },
+
+    // выбирает временной отрезок, в зависимости от выбранной даты
+    choosedValueDate(choosedDate) {
+      //возвращаем массив с данными к исходному после нажатой кнопки
+      this.timeTracking = this.primaryTimeTrackingArray;
+      const arrayByDate = [];
+
+      console.log("choosedDate in time: " + choosedDate);
+      for (let i = 0; i < this.timeTracking.length; i++) {
+        if (this.timeTracking[i].date === choosedDate) {
+          arrayByDate.push(this.timeTracking[i])
+        }
+      }
+
+      this.timeTracking = arrayByDate;
+    },
+
   },
 
   computed: {
@@ -133,7 +139,6 @@ export default {
       return this.hasNextPage ? indexCurrentPage : arrayLength;
     },
 
-
     labels() {
       const employeesSurnames = [];
 
@@ -143,10 +148,11 @@ export default {
       return employeesSurnames.slice(this.startIndex, this.endIndex);
     },
 
+    // Следит за изменения в основном массиве с данными
     chartDataComputed() {
       const chartData = {};
-
       const totalTime = [];
+
       for (let i = 0; i < this.timeTracking.length; i++) {
         totalTime.push(this.timeTracking[i].total_time)
       }
@@ -156,28 +162,34 @@ export default {
         data: totalTime.slice(this.startIndex, this.endIndex),
         backgroundColor: "rgba(71, 183,132,.5)",
         borderColor: "#47b784",
-        borderWidth: 3
+        borderWidth: 3,
       }]
       chartData.labels = this.labels;
 
       return chartData;
     },
 
+    // подсчитывает количество страниц, в зависимости от начальных параметров
     countTotalPages() {
       let pages = this.timeTracking.length / this.paginatedValue;
-      console.log("countedPages(int): " + pages)
       if (this.timeTracking.length - pages * this.paginatedValue > 0) {
         pages = pages + 1;
-        console.log("remain is: " + this.timeTracking.length - pages)
       }
 
-      console.log("countedPages: " + pages)
       return pages;
-    }
+    },
 
+    // возвращает массив со всеми уникальными датами time_tracking
+    dateArray() {
+      const primaryDateArray = this.primaryTimeTrackingArray;
+      const dateArray = [];
+      for (let i = 0; i < primaryDateArray.length; i++) {
+        dateArray.push(primaryDateArray[i].date);
+      }
+
+      return [...new Set(dateArray)];
+    },
   },
-
-
 }
 
 </script>
