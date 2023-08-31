@@ -5,22 +5,44 @@
 */
 
 <template>
-  <div class="common-histogram-layer">
-    <data-window-component :date="dateArray" @choosedvaluedate="choosedValueDate"/>
+  <div class="common-layer">
 
-    <div class="canvas-chart-class">
-      <bar-chart :chartData="chartDataComputed" :chartOptions="options" />
+    <div class="common-layer__datalist-container">
+      <div class="concrete-datalist">
+        <p class="header-like"></p>
+        <datalist-component :date="fioArray" :input-type="'text'" :warning-message-template="'Нет такого работника!'" />
+      </div>
+
+      <div class="concrete-datalist">
+        <p class="header-like"></p>
+        <datalist-component :date="dateArray" :input-type="'date'" :input_style="__input_style"
+          :warning-message-template="'Нельзя выбрать эту дату!'" @choosedvaluedate="choosedValueDate" />
+      </div>
+
+      <div class="concrete-datalist">
+        <p class="header-like"></p>
+        <datalist-component :date="dateArray" :input-type="'date'" :input_style="__input_style"
+          :warning-message-template="'Нельзя выбрать эту дату!'" @choosedvaluedate="choosedValueDate" />
+      </div>
+    </div>
+
+    <div class="common-layer__chart">
+
+      <div class="canvas-chart-class">
+        <bar-chart :chartData="chartDataComputed" :chartOptions="options" />
+      </div>
     </div>
 
     <pagination-component :totalPages="countTotalPages" :perPage="1" :currentPage="currentPage"
       @pagechanged="onPageChange" class="pagination" />
+
   </div>
 </template>
 
 <script>
 import BarChart from '@/components/BarChart.vue';
 import PaginationComponent from '@/components/PaginationComponent.vue';
-import DataWindowComponent from '@/components/DataWindowComponent.vue';
+import DatalistComponent from '@/components/DatalistComponent.vue';
 
 import { getAllTimeTrackingByEmployees } from "@/scripts/server"
 
@@ -28,8 +50,8 @@ export default {
   components: {
     BarChart,
     PaginationComponent,
-    DataWindowComponent
-},
+    DatalistComponent
+  },
 
   async created() {
     const unsortedArray = await getAllTimeTrackingByEmployees();
@@ -80,6 +102,16 @@ export default {
           }
         }
       },
+
+      // стили для дочерних компонентов
+      __input_style: {
+        fontSize: '20px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexGrow: '1'
+      }
+
     }
   },
   methods: {
@@ -113,6 +145,7 @@ export default {
     choosedValueDate(choosedDate) {
       //возвращаем массив с данными к исходному после нажатой кнопки
       this.timeTracking = this.primaryTimeTrackingArray;
+      this.currentPage = 1;
       const arrayByDate = [];
 
       console.log("choosedDate in time: " + choosedDate);
@@ -189,6 +222,17 @@ export default {
 
       return [...new Set(dateArray)];
     },
+
+    // возвращает массив со всеми уникальными ФИО time_tracking
+    fioArray() {
+      const setArrayOfFio = [...new Set(this.primaryTimeTrackingArray)]
+      const fioArray = [];
+      for (let i = 0; i < setArrayOfFio.length; i++) {
+        fioArray.push(setArrayOfFio[i].full_name);
+      }
+
+      return fioArray;
+    }
   },
 }
 
@@ -202,59 +246,36 @@ $font: 'Open Sans', sans-serif;
 .canvas-chart-class {
   width: 800px;
   padding: 10px;
+  display: flex;
+  // flex-grow: 0.5;
 }
 
-.common-histogram-layer {
-  width: 100%;
-  height: 60%;
-  position: fixed;
-  top: 0;
-  left: 0;
+.common-layer {
+  height: 100vh;
   display: flex;
-  flex-flow: column;
+  flex-direction: column;
   align-items: center;
   align-content: center;
-  justify-content: center;
-  overflow: auto;
+  // justify-content: center;
+  // overflow: auto;
   font-family: $font;
-  margin-top: 50px
-}
+  margin-top: 50px;
 
-.data-find-button {
-  background-color: #a1f8d1;
-  margin-left: 10px;
-  border-radius: 5px;
-  border-color: #57cf99;
-  font-family: $font;
-  font-size: 18px;
-}
+  &__chart {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
 
-.label-input-field {
-  font-size: 20px;
-}
-
-.input-field {
-  padding: 3px;
-  font-size: 20px;
-  text-align: center;
-}
-
-
-//пагинация
-.buttons {
-  display: flex;
-  align-items: center;
-  margin: 3px;
-}
-
-.forward-button,
-.back-button {
-  margin: 5px;
-  background-color: #a1f8d1;
-  border-radius: 5px;
-  border-color: #57cf99;
-  font-family: $font;
-  font-size: 18px;
+  &__datalist-container {
+    width: 100vw;
+    display: flex;
+    flex-direction: row;
+    align-content: space-between;
+    justify-content: space-around;
+    align-items: center;
+  }
 }
 
 .pagination {

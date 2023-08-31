@@ -8,7 +8,7 @@ import PaginationComponent from "@/components/PaginationComponent";
 import MainPage from "@/views/MainPage";
 import HistogramTools from '@/components/HistogramTools'
 import ConcreteEmployeeHist from '@/views/ConcreteEmployeeHist'
-import DataWindowComponent from '@/components/DataWindowComponent'
+import ButtonDatalistComponent from '@/components/ButtonDatalistComponent'
 
 
 const router = createRouter({
@@ -57,9 +57,10 @@ const router = createRouter({
     },
     {
       path: "/data_window",
-      name: "DataWindowComponent",
-      component: DataWindowComponent
-    }
+      name: "ButtonDatalistComponent",
+      component: ButtonDatalistComponent
+    },
+    
     
   ]
 });

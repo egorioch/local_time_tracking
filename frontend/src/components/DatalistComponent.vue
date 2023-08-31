@@ -4,15 +4,14 @@
 -->
 <template>
   <div class="common-template">
-
-    <div class="common-date-template">
-      <div class="input-template">
-        <input class="input-date" placeholder="" type="date" list="date-list" v-model="choosedValue">
+    <div class="common-template__date">
+      <div class="datalist-container">
+        <input :style="input_style" placeholder="" :type="inputType" list="date-list" v-model="choosedValue">
         <datalist id="date-list">
           <option :value="item" v-for="(item, index) in date" :key="index">
           </option>
         </datalist>
-        <button class="choose-date-button" @click="choosedValueMethod()">Поиск</button>
+        <button class="datalist-container__choose-date-button" @click="choosedValueMethod()">Поиск</button>
 
       </div>
       <div class="warning-message" v-if="warningMessage">
@@ -28,7 +27,10 @@ const WARN_MES = "Нельзя выбрать эту дату!"
 
 export default {
   props: {
-    date: { type: Array }
+    date: { type: Array },
+    inputType: { type: String},
+    input_style: { type: Object },
+    warningMessageTemplate: { type: String, default: "Error!" }
   },
   data() {
     return {
@@ -43,7 +45,7 @@ export default {
       console.log("newVal: " + newVal)
 
       if (!this.date.includes(newVal)) {
-        this.warningMessage = WARN_MES;
+        this.warningMessage = this.warningMessageTemplate;
       } else {
         this.warningMessage = '';
       }
@@ -57,7 +59,7 @@ export default {
     // Проверяем, соблюдены ли условия, если да - отправляем в родительский компонент
     choosedValueMethod() {
       if (this.warningMessage !== '' || this.choosedValue === '') {
-        this.warningMessage = WARN_MES;
+        this.warningMessage = this.warningMessageTemplate;
       } else {
         this.$emit("choosedvaluedate", this.choosedValue)
         this.warningMessage = '';
@@ -75,31 +77,24 @@ export default {
   justify-content: center;
   align-items: center;
 
-  .common-date-template {
+  &__date {
     display: flex;
-    font-family: 'Courier New', Courier, monospace;
+    // font-family: 'Courier New', Courier, monospace;
     margin: 5px;
     flex-direction: column;
 
 
-    .input-template {
+    .datalist-container {
       display: flex;
       flex-direction: row;
       margin-bottom: 5px;
+      border:1px solid grey;
+      padding: 1px;
+      border-radius: 5px;
 
-
-      .input-date {
+      &__choose-date-button {
         font-size: 20px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 0 10vw 0 10vw;
-      }
-
-
-      .choose-date-button {
-        font-size: 20px;
-        font-family: 'Courier New', Courier, monospace;
+        // font-family: 'Courier New', Courier, monospace;
         margin-left: 5px;
       }
     }
@@ -110,6 +105,29 @@ export default {
       font-size: 20px;
       font-family: 'Courier New', Courier, monospace;
     }
-  }
+  } 
+}
+
+
+input {
+  /* And hide the input's outline, so the form looks like the outline */
+  border:none;
+}
+
+/* remove the input focus blue box, it will be in the wrong place. */
+input:focus {
+  outline: none;
+}
+
+/* Add the focus effect to the form so it contains the button */
+form:focus-within { 
+  outline: 1px solid blue 
+}
+
+button {
+  /* Just a little styling to make it pretty */
+  border:1px solid #47b784;
+  background: #47b785;
+  color:white;
 }
 </style>

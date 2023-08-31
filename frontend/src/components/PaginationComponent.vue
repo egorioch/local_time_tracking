@@ -15,7 +15,8 @@
     <!-- Visible Buttons Start -->
 
     <li class="pagination-item" v-for="page in pages" :key="page.name">
-      <button type="button" @click="onClickPage(page.name)" :disabled="page.isDisabled">
+      <button type="button" @click="onClickPage(page.name)" 
+        :disabled="page.isDisabled" :class="{ active: page.name == currentPage }">
         {{ page.name }}
       </button>
     </li>
@@ -38,6 +39,15 @@
 
 <script>
 export default {
+
+  data() {
+    return {
+      active_style_button: {
+        backgroundColor: "#47b784"
+      },
+      activeFlag: false
+    }
+  },
   props: {
     maxVisibleButtons: {
       type: Number,
@@ -97,6 +107,7 @@ export default {
     isInLastPage() {
       return this.currentPage === this.totalPages;
     },
+
   },
   methods: {
     onClickFirstPage() {
@@ -117,6 +128,13 @@ export default {
     isPageActive(page) {
       return this.currentPage === page;
     }
+  },
+
+  watch: {
+    currentPage(newVal) {
+      // this.activeFlag = true;
+      console.log("newVal: " + newVal)
+    }
   }
 };
 </script>
@@ -124,6 +142,7 @@ export default {
 
 <style scoped>
 .pagination {
+  margin-top: 20px;
   list-style-type: none;
 }
 
@@ -132,7 +151,19 @@ export default {
 }
 
 .active {
-  background-color: #4AAE9B;
+  background-color: #47b785;
   color: #ffffff;
+}
+
+button {
+  margin: 0px 1px 0px 1px;
+  background-color: #47b7851f;
+  border: 1px solid #47b785;
+  color: rgb(48, 47, 47);
+  transition: all .2s ease;
+}
+
+button:hover {
+  background-color: antiquewhite;
 }
 </style>

@@ -1,19 +1,20 @@
 <template>
-  <nav-bar></nav-bar>
+  <navbar-component />
   <div id="app">
     <span v-if="isLoggedIn"><a @click="logout()">Logout</a></span>
   </div>
+  <p class="h2-like">Отслеживание времени</p>
 
   <router-view />
 </template>
 
 <script>
-import NavBar from './components/NavBar.vue';
+import NavbarComponent from './components/NavbarComponent.vue';
 
 export default {
   name: "App",
   components: {
-    NavBar
+    NavbarComponent
   },
   computed: {
     isLoggedIn() {
@@ -25,7 +26,7 @@ export default {
   methods: {
     logout() {
       this.$store.dispatch('logout')
-        .then(() => { 
+        .then(() => {
           this.$router.push('/login')
         })
     }
@@ -33,10 +34,26 @@ export default {
 }
 </script>
 
-<style scoped>
-  body {
-    overflow-x: hidden;
-    overflow-y: hidden;
-  }
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;700&display=swap');
 
+html * {
+  font-family: 'Poppins', sans-serif;
+}
+
+button {
+  padding: 4px 20px;
+  background-color: #47b784;
+  color: #fafafa;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
 </style>
